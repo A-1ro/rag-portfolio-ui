@@ -72,11 +72,18 @@ export default function Home() {
               return updated;
             });
           } else if (event.type === "sources") {
+            const sources: string[] = [
+              ...new Set(
+                (event.content as { content: string; source: string }[]).map((c) =>
+                  c.source.split("/").pop() ?? c.source
+                )
+              ),
+            ];
             setMessages((prev) => {
               const updated = [...prev];
               updated[updated.length - 1] = {
                 ...updated[updated.length - 1],
-                sources: event.content,
+                sources,
               };
               return updated;
             });
@@ -184,7 +191,7 @@ export default function Home() {
                 </div>
                 {msg.sources && msg.sources.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
-                    {[...new Set(msg.sources.map((src) => src.split("/").pop()))].map((name) => (
+                    {msg.sources.map((name) => (
                       <span
                         key={name}
                         className="text-xs bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-2.5 py-0.5"
