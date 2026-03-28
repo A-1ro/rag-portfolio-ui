@@ -4,8 +4,10 @@ let _db: Client | null = null;
 
 export function getDb(): Client {
   if (!_db) {
+    // Vercel serverless では WebSocket が使えないため libsql:// → https:// に変換
+    const url = process.env.TURSO_DB_URL!.replace(/^libsql:\/\//, "https://");
     _db = createClient({
-      url: process.env.TURSO_DB_URL!,
+      url,
       authToken: process.env.TURSO_DB_AUTH_TOKEN!,
     });
   }
