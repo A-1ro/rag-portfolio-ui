@@ -1,13 +1,11 @@
-import { createClient, type Client } from "@libsql/client/http";
+import { createClient, type Client } from "@libsql/client";
 
 let _db: Client | null = null;
 
 export function getDb(): Client {
   if (!_db) {
-    // Vercel serverless では WebSocket が使えないため libsql:// → https:// に変換
-    const url = process.env.TURSO_DB_URL!.replace(/^libsql:\/\//, "https://");
     _db = createClient({
-      url,
+      url: process.env.TURSO_DB_URL!,
       authToken: process.env.TURSO_DB_AUTH_TOKEN!,
     });
   }
