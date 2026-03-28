@@ -9,7 +9,10 @@ export async function POST(req: NextRequest) {
 
   const upstream = await fetch(`${RAG_API_URL}/query/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": process.env.RAG_API_KEY!,
+    },
     body: JSON.stringify({ question }),
   });
 
