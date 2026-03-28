@@ -1,9 +1,16 @@
-import { createClient } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 
-export const db = createClient({
-  url: process.env.TURSO_DB_URL!,
-  authToken: process.env.TURSO_DB_AUTH_TOKEN!,
-});
+let _db: Client | null = null;
+
+export function getDb(): Client {
+  if (!_db) {
+    _db = createClient({
+      url: process.env.TURSO_DB_URL!,
+      authToken: process.env.TURSO_DB_AUTH_TOKEN!,
+    });
+  }
+  return _db;
+}
 
 export type Conversation = {
   id: string;

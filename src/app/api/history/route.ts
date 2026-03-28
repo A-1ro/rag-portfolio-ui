@@ -1,7 +1,7 @@
-import { db, type Conversation } from "@/lib/db";
+import { getDb, type Conversation } from "@/lib/db";
 
 export async function GET() {
-  const result = await db.execute(
+  const result = await getDb().execute(
     "SELECT * FROM conversations ORDER BY created_at DESC LIMIT 50"
   );
 

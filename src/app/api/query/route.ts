@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 
 const RAG_API_URL = process.env.RAG_API_URL!;
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
       // 履歴を Turso に保存
       if (answer) {
-        await db.execute({
+        await getDb().execute({
           sql: "INSERT INTO conversations (id, question, answer, sources) VALUES (?, ?, ?, ?)",
           args: [uuidv4(), question, answer, JSON.stringify(sources)],
         });
