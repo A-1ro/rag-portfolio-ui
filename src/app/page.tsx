@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSession, signOut } from "next-auth/react";
 import type { Conversation } from "@/lib/db";
 
 type Message = {
@@ -16,6 +17,7 @@ export default function Home() {
   const [history, setHistory] = useState<Conversation[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetchHistory();
@@ -137,6 +139,21 @@ export default function Home() {
           </button>
           <h1 className="font-semibold text-gray-900">RAG Portfolio</h1>
           <span className="text-xs text-gray-400 ml-auto">LangChain · Qdrant · Groq</span>
+          {session?.user && (
+            <div className="flex items-center gap-2 ml-4">
+              {session.user.image && (
+                <img src={session.user.image} alt="avatar" className="w-6 h-6 rounded-full" />
+              )}
+              <span className="text-xs text-gray-600">{session.user.name}</span>
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="text-xs text-gray-400 hover:text-gray-700 transition-colors"
+              >
+                ログアウト
+              </button>
+            </div>
+          )}
         </header>
 
         {/* メッセージ */}
