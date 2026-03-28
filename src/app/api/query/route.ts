@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const encoder = new TextEncoder();
   let answer = "";
-  let sources: string[] = [];
+  let chunks: { content: string; source: string }[] = [];
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
             answer += event.content;
             controller.enqueue(encoder.encode(line + "\n\n"));
           } else if (event.type === "sources") {
-            sources = event.content;
+            chunks = event.content;
             controller.enqueue(encoder.encode(line + "\n\n"));
           } else if (event.type === "error") {
             controller.enqueue(encoder.encode(line + "\n\n"));
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       if (answer) {
         await getDb().execute({
           sql: "INSERT INTO conversations (id, question, answer, sources) VALUES (?, ?, ?, ?)",
-          args: [uuidv4(), question, answer, JSON.stringify(sources)],
+          args: [uuidv4(), question, answer, JSON.stringify(chunks.map((c) => c.source))],
         });
       }
 

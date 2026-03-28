@@ -184,12 +184,12 @@ export default function Home() {
                 </div>
                 {msg.sources && msg.sources.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
-                    {msg.sources.map((src) => (
+                    {[...new Set(msg.sources.map((src) => src.split("/").pop()))].map((name) => (
                       <span
-                        key={src}
+                        key={name}
                         className="text-xs bg-blue-50 text-blue-600 border border-blue-100 rounded-full px-2.5 py-0.5"
                       >
-                        {src.split("/").pop()}
+                        {name}
                       </span>
                     ))}
                   </div>
