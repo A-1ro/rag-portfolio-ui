@@ -1,10 +1,17 @@
 import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { getDb } from "@/lib/db";
+import { auth } from "@/auth";
 
 const RAG_API_URL = process.env.RAG_API_URL!;
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const { question } = await req.json();
 
   const upstream = await fetch(`${RAG_API_URL}/query/stream`, {
@@ -53,8 +60,8 @@ export async function POST(req: NextRequest) {
       // 履歴を Turso に保存
       if (answer) {
         await getDb().execute({
-          sql: "INSERT INTO conversations (id, question, answer, sources) VALUES (?, ?, ?, ?)",
-          args: [uuidv4(), question, answer, JSON.stringify(chunks.map((c) => c.source))],
+          sql: "INSERT INTO conversations (id, user_id, question, answer, sources) VALUES (?, ?, ?, ?, ?)",
+          args: [uuidv4(), userId, question, answer, JSON.stringify(chunks.map((c) => c.source))],
         });
       }
 
