@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "migrate": "tsx --env-file=.env.local scripts/migrate.ts"
+    "migrate": "tsx --env-file=.env.local scripts/migrate.ts",
+    "migrate:ci": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
