@@ -71,13 +71,17 @@ export default function Home() {
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
+      let lineBuffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
+        lineBuffer += decoder.decode(value, { stream: true });
+        const lines = lineBuffer.split("\n");
+        lineBuffer = lines.pop() ?? ""; // 最後の不完全な行を次チャンクに持ち越す
+
+        for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           let event: { type: string; content: unknown };
           try {
@@ -87,6 +91,7 @@ export default function Home() {
           }
 
           if (event.type === "token") {
+            if (typeof event.content !== "string") continue;
             setMessages((prev) => {
               const updated = [...prev];
               updated[updated.length - 1] = {
