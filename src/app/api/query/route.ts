@@ -40,36 +40,38 @@ export async function POST(req: NextRequest) {
       const reader = upstream.body!.getReader();
       const decoder = new TextDecoder();
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          const event = JSON.parse(line.slice(6));
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split("\n")) {
+            if (!line.startsWith("data: ")) continue;
+            const event = JSON.parse(line.slice(6));
 
-          if (event.type === "token") {
-            answer += event.content;
-            controller.enqueue(encoder.encode(line + "\n\n"));
-          } else if (event.type === "sources") {
-            chunks = event.content;
-            controller.enqueue(encoder.encode(line + "\n\n"));
-          } else if (event.type === "error") {
-            controller.enqueue(encoder.encode(line + "\n\n"));
+            if (event.type === "token") {
+              answer += event.content;
+              controller.enqueue(encoder.encode(line + "\n\n"));
+            } else if (event.type === "sources") {
+              chunks = event.content;
+              controller.enqueue(encoder.encode(line + "\n\n"));
+            } else if (event.type === "error") {
+              controller.enqueue(encoder.encode(line + "\n\n"));
+            }
           }
         }
-      }
 
-      // 履歴を Turso に保存
-      if (answer) {
-        await getDb().execute({
-          sql: "INSERT INTO conversations (id, session_id, user_id, question, answer, sources) VALUES (?, ?, ?, ?, ?, ?)",
-          args: [uuidv4(), resolvedSessionId, userId, question, answer, JSON.stringify(chunks.map((c) => c.source))],
-        });
+        // 履歴を Turso に保存
+        if (answer) {
+          await getDb().execute({
+            sql: "INSERT INTO conversations (id, session_id, user_id, question, answer, sources) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [uuidv4(), resolvedSessionId, userId, question, answer, JSON.stringify(chunks.map((c) => c.source))],
+          });
+        }
+      } finally {
+        controller.close();
       }
-
-      controller.close();
     },
   });
 
