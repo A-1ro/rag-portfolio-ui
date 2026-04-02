@@ -14,9 +14,17 @@ export function getDb(): Client {
 
 export type Conversation = {
   id: string;
+  session_id: string;
   user_id: string;
   question: string;
   answer: string;
   sources: string[];
+  created_at: string;
+};
+
+export type Session = {
+  session_id: string;
+  title: string;
+  messages: Conversation[];
   created_at: string;
 };

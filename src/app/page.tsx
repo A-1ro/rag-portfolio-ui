@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useSession, signOut } from "next-auth/react";
-import type { Conversation } from "@/lib/db";
+import type { Session } from "@/lib/db";
 
 type Message = {
   role: "user" | "assistant";
@@ -14,8 +15,9 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<Conversation[]>([]);
+  const [history, setHistory] = useState<Session[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
 
@@ -44,11 +46,14 @@ export default function Home() {
     setMessages((prev) => [...prev, { role: "user", content: question }]);
     setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
+    const currentSessionId = sessionId ?? uuidv4();
+    if (!sessionId) setSessionId(currentSessionId);
+
     try {
       const res = await fetch("/api/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, sessionId: currentSessionId }),
       });
 
       if (!res.ok) {
@@ -110,11 +115,18 @@ export default function Home() {
     }
   }
 
-  function loadHistory(item: Conversation) {
-    setMessages([
-      { role: "user", content: item.question },
-      { role: "assistant", content: item.answer, sources: item.sources },
+  function startNewChat() {
+    setMessages([]);
+    setSessionId(null);
+  }
+
+  function loadHistory(item: Session) {
+    const msgs: Message[] = item.messages.flatMap((conv) => [
+      { role: "user" as const, content: conv.question },
+      { role: "assistant" as const, content: conv.answer, sources: conv.sources },
     ]);
+    setMessages(msgs);
+    setSessionId(item.session_id);
   }
 
   return (
@@ -135,8 +147,15 @@ export default function Home() {
             : "-translate-x-full md:translate-x-0 md:w-0 md:overflow-hidden"
         }`}
       >
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h2 className="font-semibold text-sm text-gray-600 dark:text-gray-400 uppercase tracking-wide">履歴</h2>
+          <button
+            type="button"
+            onClick={startNewChat}
+            className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            ＋ 新規
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {history.length === 0 ? (
@@ -144,12 +163,19 @@ export default function Home() {
           ) : (
             history.map((item) => (
               <button
-                key={item.id}
+                key={item.session_id}
                 type="button"
                 onClick={() => loadHistory(item)}
-                className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-700 truncate"
+                className={`w-full text-left px-4 py-3 text-sm border-b border-gray-100 dark:border-gray-700 truncate transition-colors ${
+                  item.session_id === sessionId
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                }`}
               >
-                {item.question}
+                <span className="truncate block">{item.title}</span>
+                {item.messages.length > 1 && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{item.messages.length} メッセージ</span>
+                )}
               </button>
             ))
           )}

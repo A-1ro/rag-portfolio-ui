@@ -12,7 +12,11 @@ export async function POST(req: NextRequest) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const { question } = await req.json();
+  const { question, sessionId } = await req.json();
+  if (!question || typeof question !== "string") {
+    return new Response("Bad Request", { status: 400 });
+  }
+  const resolvedSessionId: string = typeof sessionId === "string" && sessionId ? sessionId : uuidv4();
 
   const upstream = await fetch(`${RAG_API_URL}/query/stream`, {
     method: "POST",
@@ -60,8 +64,8 @@ export async function POST(req: NextRequest) {
       // 履歴を Turso に保存
       if (answer) {
         await getDb().execute({
-          sql: "INSERT INTO conversations (id, user_id, question, answer, sources) VALUES (?, ?, ?, ?, ?)",
-          args: [uuidv4(), userId, question, answer, JSON.stringify(chunks.map((c) => c.source))],
+          sql: "INSERT INTO conversations (id, session_id, user_id, question, answer, sources) VALUES (?, ?, ?, ?, ?, ?)",
+          args: [uuidv4(), resolvedSessionId, userId, question, answer, JSON.stringify(chunks.map((c) => c.source))],
         });
       }
 
