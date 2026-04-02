@@ -206,7 +206,7 @@ export default function Home() {
           {session?.user && (
             <div className="flex items-center gap-2 ml-auto sm:ml-4">
               {session.user.image && (
-                <img src={session.user.image} alt={session.user.name ?? "avatar"} className="w-6 h-6 rounded-full" />
+                <img src={session.user.image} alt={session.user.name || "avatar"} className="w-6 h-6 rounded-full" />
               )}
               <span className="hidden sm:inline text-xs text-gray-600 dark:text-gray-400">{session.user.name}</span>
               <button
