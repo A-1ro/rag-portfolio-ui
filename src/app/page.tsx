@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { Conversation } from "@/lib/db";
 
 type Message = {
@@ -200,13 +202,22 @@ export default function Home() {
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-full sm:max-w-2xl ${msg.role === "user" ? "order-1" : ""}`}>
                 <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-gray-900 dark:bg-gray-700 text-white"
+                      ? "bg-gray-900 dark:bg-gray-700 text-white whitespace-pre-wrap"
                       : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === "user" ? (
+                    msg.content
+                  ) : (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:rounded-lg prose-code:before:content-none prose-code:after:content-none"
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  )}
                   {msg.role === "assistant" && loading && i === messages.length - 1 && !msg.content && (
                     <span className="inline-flex gap-1">
                       <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
