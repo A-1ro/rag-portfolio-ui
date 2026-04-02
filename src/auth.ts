@@ -9,4 +9,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   session: { strategy: "jwt" },
+  callbacks: {
+    jwt({ token }) {
+      return token;
+    },
+    session({ session, token }) {
+      session.user.id = token.sub!;
+      return session;
+    },
+  },
 });
