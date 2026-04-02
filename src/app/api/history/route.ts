@@ -2,8 +2,9 @@ import { getDb, type Conversation } from "@/lib/db";
 import { auth } from "@/auth";
 
 export async function GET() {
+  const isPreview = process.env.VERCEL_ENV === "preview";
   const session = await auth();
-  const userId = session?.user?.id;
+  const userId = session?.user?.id ?? (isPreview ? "preview" : null);
   if (!userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
