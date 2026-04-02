@@ -29,8 +29,9 @@ export default function Home() {
 
   async function fetchHistory() {
     const res = await fetch("/api/history");
+    if (!res.ok) return;
     const data = await res.json();
-    setHistory(data);
+    if (Array.isArray(data)) setHistory(data);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
