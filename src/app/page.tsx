@@ -51,6 +51,19 @@ export default function Home() {
         body: JSON.stringify({ question }),
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            content: `エラーが発生しました (${res.status}): ${text}`,
+          };
+          return updated;
+        });
+        return;
+      }
+
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
 
