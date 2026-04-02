@@ -211,12 +211,11 @@ export default function Home() {
                   {msg.role === "user" ? (
                     msg.content
                   ) : (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:rounded-lg prose-code:before:content-none prose-code:after:content-none"
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-gray-100 dark:prose-pre:bg-gray-900 prose-pre:rounded-lg prose-code:before:content-none prose-code:after:content-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   )}
                   {msg.role === "assistant" && loading && i === messages.length - 1 && !msg.content && (
                     <span className="inline-flex gap-1">
