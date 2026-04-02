@@ -130,7 +130,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-dvh bg-gray-50 dark:bg-gray-950">
       {/* モバイル：サイドバー背景暗幕 */}
       {sidebarOpen && (
         <div
