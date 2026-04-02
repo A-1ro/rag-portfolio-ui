@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "migrate": "tsx --env-file=.env.local scripts/migrate.ts",
+    "migrate:ci": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "tailwindcss": "^4",
+    "tsx": "^4",
     "typescript": "^5"
   }
 }
