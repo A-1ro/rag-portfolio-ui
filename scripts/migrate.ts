@@ -14,12 +14,6 @@ const db = createClient({
   authToken: process.env.TURSO_DB_AUTH_TOKEN!,
 });
 
-if (!process.env.TURSO_DB_URL || !process.env.TURSO_DB_AUTH_TOKEN) {
-  console.error("Error: TURSO_DB_URL and TURSO_DB_AUTH_TOKEN must be set.");
-  console.error("Run `vercel env pull .env.local` to fetch them.");
-  process.exit(1);
-}
-
 const migrations = [
   {
     name: "add_session_id_to_conversations",
@@ -27,19 +21,32 @@ const migrations = [
   },
 ];
 
-for (const migration of migrations) {
-  try {
-    await db.execute({ sql: migration.sql, args: [] });
-    console.log(`✓ ${migration.name}`);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    if (message.includes("duplicate column")) {
-      console.log(`- ${migration.name} (already applied)`);
-    } else {
-      console.error(`✗ ${migration.name}: ${message}`);
-      process.exit(1);
+async function main() {
+  if (!process.env.TURSO_DB_URL || !process.env.TURSO_DB_AUTH_TOKEN) {
+    console.error("Error: TURSO_DB_URL and TURSO_DB_AUTH_TOKEN must be set.");
+    console.error("Run `vercel env pull .env.local` to fetch them.");
+    process.exit(1);
+  }
+
+  for (const migration of migrations) {
+    try {
+      await db.execute({ sql: migration.sql, args: [] });
+      console.log(`✓ ${migration.name}`);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (message.includes("duplicate column")) {
+        console.log(`- ${migration.name} (already applied)`);
+      } else {
+        console.error(`✗ ${migration.name}: ${message}`);
+        process.exit(1);
+      }
     }
   }
+
+  console.log("Migration complete.");
 }
 
-console.log("Migration complete.");
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
