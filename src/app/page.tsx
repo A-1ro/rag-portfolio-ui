@@ -79,7 +79,12 @@ export default function Home() {
         const chunk = decoder.decode(value, { stream: true });
         for (const line of chunk.split("\n")) {
           if (!line.startsWith("data: ")) continue;
-          const event = JSON.parse(line.slice(6));
+          let event: { type: string; content: unknown };
+          try {
+            event = JSON.parse(line.slice(6));
+          } catch {
+            continue;
+          }
 
           if (event.type === "token") {
             setMessages((prev) => {
